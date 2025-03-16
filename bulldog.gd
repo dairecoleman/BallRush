@@ -60,7 +60,7 @@ func _on_safe_zone_entered(body: CharacterBody3D):
 		reached_safe_zone.emit()  # Signal that this runner is safe
 		change_colour()
 		velocity = Vector3.ZERO
-		leave_from_runners_array(self)
+		leave_from_runners_array()
 		print(name, " has reached safety! Remaining runners:", runners_array.size())
 
 # for testing purposes - set destination for agent in nav area
@@ -173,14 +173,14 @@ func set_state(given_state):
 	state = given_state
 	print("State set to: ", state)
 
-func leave_from_runners_array(body: CharacterBody3D) -> void:
+func leave_from_runners_array() -> void:
 	if self in runners_array:
 			runners_array.erase(self)
 			
 func _on_chaser_detector_body_entered(body: CharacterBody3D) -> void:
 	if body.state == CHASE and self.state == RUN:
 		caught.emit()
-		leave_from_runners_array(self)
+		leave_from_runners_array()
 		print(self.name, " was caught! Remaining runners:", runners_array.size())
 		set_state(CHASE)
 		change_colour()
