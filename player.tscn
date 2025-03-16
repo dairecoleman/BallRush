@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://b4drt2or2jy6o"]
+
+[ext_resource type="PackedScene" uid="uid://85fqi10ivqft" path="res://art/BallRushPlayer.glb" id="1_g2frd"]
+[ext_resource type="Script" path="res://player.gd" id="1_vreos"]
+[ext_resource type="PackedScene" uid="uid://ceni6tsbt4736" path="res://player_camera_pivot.tscn" id="3_x6g1c"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_nhmww"]
+radius = 1.0
+
+[node name="Player" type="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("1_vreos")
+
+[node name="Pivot" type="Node3D" parent="."]
+
+[node name="Character" parent="Pivot" instance=ExtResource("1_g2frd")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_nhmww")
+
+[node name="CameraPivot" parent="." instance=ExtResource("3_x6g1c")]

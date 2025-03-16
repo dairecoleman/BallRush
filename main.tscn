@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://ct45giyca3cup"]
+
+[ext_resource type="PackedScene" uid="uid://b4drt2or2jy6o" path="res://player.tscn" id="1_svr7w"]
+[ext_resource type="Script" path="res://main.gd" id="1_ttacc"]
+[ext_resource type="PackedScene" uid="uid://chppekewtflxi" path="res://bulldog.tscn" id="3_1tdsu"]
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_iu32f"]
+vertices = PackedVector3Array(-14.5, 1.5, -24.5, -14.5, 1.5, 24.5, 14.5, 1.5, 24.5, 14.5, 1.5, -24.5)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+cell_height = 0.1
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gjw2k"]
+size = Vector3(30, 1, 1)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_ttacc")
+player_scene = ExtResource("1_svr7w")
+bulldog_scene = ExtResource("3_1tdsu")
+
+[node name="Ground" type="NavigationRegion3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+navigation_mesh = SubResource("NavigationMesh_iu32f")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Ground"]
+use_collision = true
+size = Vector3(30, 1, 50)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 10, 0)
+shadow_enabled = true
+
+[node name="SafeZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -23)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SafeZone"]
+shape = SubResource("BoxShape3D_gjw2k")

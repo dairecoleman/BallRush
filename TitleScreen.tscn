@@ -1,0 +1,62 @@
+[gd_scene load_steps=4 format=3 uid="uid://cbxik7gt0i46q"]
+
+[ext_resource type="Script" path="res://title_screen.gd" id="1_6naba"]
+
+[sub_resource type="SystemFont" id="SystemFont_wggum"]
+subpixel_positioning = 0
+
+[sub_resource type="Theme" id="Theme_ujswr"]
+default_font = SubResource("SystemFont_wggum")
+default_font_size = 22
+
+[node name="UserInterface" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_ujswr")
+script = ExtResource("1_6naba")
+
+[node name="Retry" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.129412, 0.419608, 0.266667)
+
+[node name="MainTitle" type="Label" parent="Retry"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -46.0
+offset_top = -15.5
+offset_right = 46.0
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "BallRush"
+
+[node name="StartButton" type="Button" parent="Retry"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = 113.0
+offset_right = 77.0
+offset_bottom = 209.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Start"
+
+[connection signal="pressed" from="Retry/StartButton" to="." method="_on_start_button_pressed"]
