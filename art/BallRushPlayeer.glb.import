@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://85fqi10ivqft"
-path="res://.godot/imported/BallRushPlayer.glb-5456c166139c4310ec0c65215394d7ad.scn"
+path="res://.godot/imported/BallRushPlayeer.glb-f4a9ba23ae5359f1be8380e53904dbf9.scn"
 
 [deps]
 
-source_file="res://art/BallRushPlayer.glb"
-dest_files=["res://.godot/imported/BallRushPlayer.glb-5456c166139c4310ec0c65215394d7ad.scn"]
+source_file="res://art/BallRushPlayeer.glb"
+dest_files=["res://.godot/imported/BallRushPlayeer.glb-f4a9ba23ae5359f1be8380e53904dbf9.scn"]
 
 [params]
 

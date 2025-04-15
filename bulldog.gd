@@ -1,18 +1,26 @@
 extends CharacterBody3D
-@onready var navigation_agent_3d: NavigationAgent3D = $NavigationAgent3D
+
+@onready var navigation_agent_3d: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
 @export var flee_radius: float = 10.0  # Radius within which to react to chasers
-@export var flee_weight: float = 0.8  # 0 = only goal, 1 = only fleeing
+@export var flee_weight: float = 0.4  # 0 = only goal, 1 = only fleeing
 # How fast the player moves in meters per second.
 @export var speed = 3
 # The downward acceleration when in the air, in meters per second squared.
 @export var fall_acceleration = 75
 #@export var goal_position = 
 # Emitted when the bulldog was hit by a chaser.
-signal caught
-signal reached_safe_zone
+signal caught(body)
+# Emitted when the bulldog is safe.
+signal reached_safe_zone(body)
+# Emitted when the bulldog is no longer active in this round.
+signal inactive(body)
+
 # Declare the variable to hold the player reference
 var player
 var state 
+
+var parent = get_parent()
+
 var runners_array = []
 var chasers_array = []
 
@@ -28,9 +36,10 @@ enum {
 }
 
 func _ready():
+	
 	# Function to perform setup tasks
 	# Assume the player is named "Player" in the scene
-	change_colour()
+	
 	var parent = get_parent()
 	print("parent of bulldog script", parent)
 	if parent and parent.has_method("get_runners") and parent.has_method("get_chasers"):
@@ -53,15 +62,8 @@ func _ready():
 	if state == null:
 		state = RUN
 		print("State null, setting to: ", state)
-
-func _on_safe_zone_entered(body: CharacterBody3D):
-	if body == self and state == RUN:
-		set_state(SAFE)
-		reached_safe_zone.emit()  # Signal that this runner is safe
-		change_colour()
-		velocity = Vector3.ZERO
-		leave_from_runners_array()
-		print(name, " has reached safety! Remaining runners:", runners_array.size())
+	
+	change_colour()
 
 # for testing purposes - set destination for agent in nav area
 func _unhandled_input(event: InputEvent) -> void:
@@ -76,6 +78,8 @@ func change_colour():
 		new_material.albedo_color = default_colour
 	if state == SAFE:
 		new_material.albedo_color = safe_colour
+	if not state:
+		print("no state found")
 	$MeshInstance3D.material_override = new_material
 
 func nearest_point_on_line(P: Vector3) -> Vector3:
@@ -95,6 +99,8 @@ func nearest_point_on_line(P: Vector3) -> Vector3:
 	return A + AB * t  # Nearest point on the line i.e destination
 
 func _physics_process(_delta):
+	if global_position.y < -10:
+		on_fell_out_of_bounds()
 	# Use state machine to CHASE or to RUN
 	match state:
 		CHASE:
@@ -104,15 +110,17 @@ func _physics_process(_delta):
 		SAFE:
 			pass
 			
-""" Function to identify nearest runner object forchaser to chase """
+""" Function to identify nearest runner object for chaser to chase """
 func find_nearest_runner():
 	# Ensure the runners_array isn't empty
 	#print(runners_array, player)
-	if runners_array.size() == 0:
+	var parent = get_parent()
+	var runners_array = parent.get_runners()
+	if runners_array.is_empty():
 		print("No runners available!")
-	# default min_distance and nearest_runner to player
-	var min_distance = global_position.distance_to(player.global_position)
-	var nearest_runner = player
+	# default min_distance and nearest_runner to runner[0]
+	var min_distance = INF
+	var nearest_runner = null
 	# check if any are nearer and update min_distance, nearest_runner and return nearest_runner
 	for runner in runners_array:
 		var distance = global_position.distance_to(runner.global_position)
@@ -146,7 +154,8 @@ func get_flee_vector() -> Vector3:
 func get_nearest_chaser() -> Node3D:
 	var nearest_chaser = null
 	var min_distance = flee_radius
-
+	var parent = get_parent()
+	var chasers_array = parent.get_chasers()
 	for chaser in chasers_array:
 		var distance = global_transform.origin.distance_to(chaser.global_transform.origin)
 		if distance < min_distance:
@@ -173,14 +182,32 @@ func set_state(given_state):
 	state = given_state
 	print("State set to: ", state)
 
-func leave_from_runners_array() -> void:
-	if self in runners_array:
-			runners_array.erase(self)
-			
+""" Function to declare object is caught emit signal, change state and colour """
+func is_caught():
+	caught.emit(self)
+	print(self.name, " was caught!")
+	set_state(CHASE)
+	change_colour()
+	inactive.emit(self)
+
+""" Function to detect when caught """
 func _on_chaser_detector_body_entered(body: CharacterBody3D) -> void:
 	if body.state == CHASE and self.state == RUN:
-		caught.emit()
-		leave_from_runners_array()
-		print(self.name, " was caught! Remaining runners:", runners_array.size())
-		set_state(CHASE)
+		self.is_caught()
+
+""" Function to declare object has fallen out-of-bounds """
+func on_fell_out_of_bounds() -> void:
+		print(self,"has fallen out of bounds")
+		global_position = Vector3(0,5,-22)
+		self.is_caught()
+		
+	
+func _on_safe_zone_entered(body: CharacterBody3D):
+	if body == self and state == RUN:
+		set_state(SAFE)
+		reached_safe_zone.emit(self)  # Signal that this runner is safe
 		change_colour()
+		velocity = Vector3.ZERO
+#		leave_from_runners_array()
+		print(name, " has reached safety! ")
+		inactive.emit(self)

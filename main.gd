@@ -1,9 +1,11 @@
 extends Node3D
 
+
 @export var player_scene: PackedScene
 @export var bulldog_scene: PackedScene
 
 @onready var Bulldog = preload("res://bulldog.gd")  # Adjust the path
+
 
 const NUMBER_OF_PLAYERS = 7
 
@@ -14,6 +16,9 @@ var chasers_center_spawn_position = Vector3(0, 0.5, -22)
 var runners = []
 var chasers = []
 
+var active_round_runner_count
+var round_inactive_count
+
 func get_runners():
 	return runners
 
@@ -21,6 +26,8 @@ func get_chasers():
 	return chasers
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	print("player_scene is: ", player_scene)
+	print("can instantiate? ", player_scene and player_scene is PackedScene)
 	# Spawn the user-controlled player
 	game_start()
 	
@@ -32,10 +39,16 @@ func game_start() -> void:
 	var player = player_scene.instantiate()  # Create an instance of the PlayerCharacter
 	add_child(player) 
 	runners.append(player)
+	player.caught.connect(_on_runner_emit_detected)
+	player.inactive.connect(_on_inactive_emit_detected)
+	player.reached_safe_zone.connect(_on_reached_safe_zone_detected)
 	
 	for n in 5:
 		var runner_bulldog = bulldog_scene.instantiate()
 		runner_bulldog.set_state(Bulldog.RUN)
+		runner_bulldog.caught.connect(_on_runner_emit_detected)
+		runner_bulldog.inactive.connect(_on_inactive_emit_detected)
+		runner_bulldog.reached_safe_zone.connect(_on_reached_safe_zone_detected)
 		runners.append(runner_bulldog)
 		print(runners)
 		add_child(runner_bulldog)
@@ -52,6 +65,10 @@ func game_start() -> void:
 	
 # starts a round of bulldog takes array of chasers and runners and spawns them
 func round_start(round_start_runners, round_start_chasers) -> void:
+	round_inactive_count = 0
+	active_round_runner_count = len(round_start_runners)
+	for runner in round_start_runners:
+		runner.set_state(Bulldog.RUN)
 	position_runners(round_start_runners)
 	position_chasers(round_start_chasers)
 	
@@ -83,7 +100,42 @@ func position_runners(starting_runners) -> void:
 		var new_position = Vector3(positions[i], 0, 22) # Preserve Y position
 		runner.global_position = new_position
 		print("Runner %d placed at %s" % [i, new_position])
+		
+		
+func assign_to_team(body, team: String):
+	runners.erase(body)
+	chasers.erase(body)
+	
+	if team == "runners":
+		runners.append(body)
+	elif team == "chasers":
+		chasers.append(body)
+		
+	print("runners:", runners)
+	print("chasers:", chasers)
+	
+func _on_runner_emit_detected(body) -> void:
+	print("_on_runner_emit_detected triggered")
+	assign_to_team(body, "chasers")
+	
+	
+func end_round():
+	print("ROUND OVER")
+	round_start(runners,chasers)
+	
+func _on_inactive_emit_detected(body) -> void:
+	print("_on_inactive_emit triggered")
+	round_inactive_count+=1
+	print("round inactive count is", round_inactive_count, "active_round_runner_count is ",active_round_runner_count)
+	if round_inactive_count == active_round_runner_count:
+		end_round()
+	# check to see if count == active runner count
+	
+func _on_reached_safe_zone_detected(body) ->void:
+	print("_on_reached_safe_zone triggered")
+	assign_to_team(body, "runners")
 
+	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta: float) -> void:
 	#if player:

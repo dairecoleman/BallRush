@@ -1,15 +1,15 @@
-extends CharacterBody3D
+extends "res://bulldog.gd"
 
 # How fast the player moves in meters per second.
-@export var speed = 14
+#@export var speed = 14
 # The downward acceleration when in the air, in meters per second squared.
-@export var fall_acceleration = 75
+#@export var fall_acceleration = 75
 # target_velocity is a property because we want to update and reuse its value across frames.
 var target_velocity = Vector3.ZERO
-enum { RUN, CHASE }
-var state = RUN
 
 func _physics_process(delta):
+	if global_position.y < -10:
+		on_fell_out_of_bounds()
 	# We create a local variable to store the input direction.
 	var direction = Vector3.ZERO
 
